@@ -1,2 +1,2 @@
-# Automation-Project-2-
+# Automation-Project-2
 jira-clone 
