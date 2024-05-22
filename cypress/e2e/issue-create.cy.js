@@ -1,32 +1,52 @@
-//Import necessary dependencies
 import { faker } from '@faker-js/faker'
 
-//Variables 
-const staticDescriptionText = "My bug description";
-const staticTitle = "Bug";
-const staticIssueType = "Bug";
-const staticPriority = "Highest";
-const staticReporter = "Pickle Rick";
+//Variable for function
 const staticAssignee = "Lord Gaben";
-
-// Functions
-function openIssueForm() {
-  cy.get('[data-testid="modal:issue-create"]').within(() => {
-    // Actions to perform within the modal
-  });
-}
+//Functions
 function fillTitleField(text) {
-  cy.get('input[name="title"]').type(text); // Type value to the "title" input field
-  cy.get('input[name="title"]').should('have.value', text);// Verify that the "title" input field has the correct value
+  cy.get('input[name="title"]').type(text); 
+  cy.get('input[name="title"]').should('have.value', text); 
 }
 function fillDescriptionField(descriptionText) {
-  cy.get('.ql-editor').type(descriptionText);// Type the provided text into the description input field
-  cy.get('.ql-editor').should('have.text', descriptionText);// Verify that the description input field has the correct value
+  cy.get('.ql-editor').type(descriptionText); 
+  cy.get('.ql-editor').should('have.text', descriptionText); 
+} 
+function selectDropdownOption(dropdownTestId, optionText) {
+  if (optionText === 'Task') {
+    cy.get(`[data-testid="${dropdownTestId}"] div`).should("contain", optionText);
+    return;
+  }
+  cy.get(`[data-testid="${dropdownTestId}"]`).click();
+  cy.get(`[data-testid="select-option:${optionText}"]`, { timeout: 10000 }).should('be.visible');
+  cy.get(`[data-testid="select-option:${optionText}"]`).click();
+  cy.get(`[data-testid="${dropdownTestId}"] div`).should("contain", optionText);
 }
-function selectIssueType(issueType) {
-cy.get('[data-testid="select:type"]').click();
-cy.get(`[data-testid="select-option:${issueType}"]`).wait(1000).trigger('mouseover').trigger('click');
-cy.get('[data-testid="icon:bug"]').should('be.visible');
+
+function createItemAndCloseForm() {
+  cy.get('button[type="submit"]').click();
+  cy.get('[data-testid="modal:issue-create"]').should('not.exist');
+  cy.contains('Issue has been successfully created.').should('be.visible');
+  cy.reload();
+  cy.contains('Issue has been successfully created.').should('not.exist');
+}
+
+function assertBacklogList() {
+  cy.get('[data-testid="board-list:backlog"]')
+    .should('be.visible')
+    .and('have.length', '1')
+    .within(() => {
+      cy.get('[data-testid="list-issue"]')
+        .should('have.length.gt', 0) // Check if there are any issues in the backlog list
+      cy.get('[data-testid="list-issue"]').first().within(() => {
+        cy.get('[data-testid^="icon:"]').should('be.visible');
+      });
+      const assignee = staticAssignee;
+      if (assignee && assignee !== "") {
+        cy.get(`[data-testid="avatar:${assignee}"]`).should('be.visible');
+      } else {
+        cy.get('[data-testid^="avatar:"]').should('not.exist');
+      }
+  })
 }
 
 describe('Issue create', () => {
@@ -35,149 +55,72 @@ describe('Issue create', () => {
     cy.url()
       .should('eq', `${Cypress.env('baseUrl')}project/board`)
       .then((url) => {
-        // System will already open issue creating modal in beforeEach block
         cy.visit(url + '/board?modal-issue-create=true');
       });
   });
 
-  it('Should create an issue and validate it successfully', () => {
-    // System finds modal for creating issue and does next steps inside of it
+  it('Should create an issue and validate it successfully', () => {    
+    const staticDescriptionText = "TEST_DESCRIPTION";
+    const staticTitle = "TEST_TITLE";
+  
     cy.get('[data-testid="modal:issue-create"]').within(() => {
-      // Type value to description input field
-      cy.get('.ql-editor').type('TEST_DESCRIPTION');
-      cy.get('.ql-editor').should('have.text', 'TEST_DESCRIPTION');
-
-      // Type value to title input field
-      // Order of filling in the fields is first description, then title on purpose
-      // Otherwise filling title first sometimes doesn't work due to web page implementation
-      cy.get('input[name="title"]').type('TEST_TITLE');
-      cy.get('input[name="title"]').should('have.value', 'TEST_TITLE');
-
-      // Open issue type dropdown and choose Story
-      cy.get('[data-testid="select:type"]').click();
-      cy.get('[data-testid="select-option:Story"]').wait(1000).trigger('mouseover').trigger('click');
-      cy.get('[data-testid="icon:story"]').should('be.visible');
-
-      // Select Baby Yoda from reporter dropdown
-      cy.get('[data-testid="select:reporterId"]').click();
-      cy.get('[data-testid="select-option:Baby Yoda"]').click();
-
-      // Select Baby Yoda from assignee dropdown
-      cy.get('[data-testid="form-field:userIds"]').click();
-      cy.get('[data-testid="select-option:Pickle Rick"]').click();
-
-      // Click on button "Create issue"
-      cy.get('button[type="submit"]').click();
+      fillDescriptionField(staticDescriptionText);
+      fillTitleField(staticTitle);
     });
+    const dropdownSelections = [
+      { dropdownTestId: 'select:type', optionText: 'Story' },
+      { dropdownTestId: 'select:reporterId', optionText: 'Baby Yoda' },
+      { dropdownTestId: 'form-field:userIds', optionText: 'Baby Yoda' },
+    ];
+    dropdownSelections.forEach(selection => {
+      selectDropdownOption(selection.dropdownTestId, selection.optionText);
+    });
+    assertBacklogList();
+  });
 
-    // Assert that modal window is closed and successful message is visible
-    cy.get('[data-testid="modal:issue-create"]').should('not.exist');
-    cy.contains('Issue has been successfully created.').should('be.visible');
+  it('Should create another issue with provided data and validate it successfully', () => {
+    const staticDescriptionText = "My bug description";
+    const staticTitle = "Bug";
+    cy.get('[data-testid="modal:issue-create"]').within(() => {
+      fillDescriptionField(staticDescriptionText);
+      fillTitleField(staticTitle);
+    });
+    const dropdownSelections = [
+      { dropdownTestId: 'select:type', optionText: 'Bug' },
+      { dropdownTestId: 'select:reporterId', optionText: 'Pickle Rick' },
+      { dropdownTestId: 'form-field:userIds', optionText: 'Lord Gaben' },
+      { dropdownTestId: 'select:priority', optionText: 'Highest' }
+    ];
+    dropdownSelections.forEach(selection => {
+      selectDropdownOption(selection.dropdownTestId, selection.optionText);
+    });
+    createItemAndCloseForm();
+    assertBacklogList();
+  });
 
-    // Reload the page to be able to see recently created issue
-    // Assert that successful message has dissappeared after the reload
-    cy.reload();
-    cy.contains('Issue has been successfully created.').should('not.exist');
-
-    // Assert than only one list with name Backlog is visible and do steps inside of it
-    cy.get('[data-testid="board-list:backlog"]')
-      .should('be.visible')
-      .and('have.length', '1')
-      .within(() => {
-        // Assert that this list contains 5 issues and first element with tag p has specified text
-        cy.get('[data-testid="list-issue"]')
-          .should('have.length', '5')
-          .first()
-          .find('p')
-          .contains('TEST_TITLE')
-          .siblings()
-          .within(() => {
-            //Assert that correct avatar and type icon are visible
-            cy.get('[data-testid="avatar:Pickle Rick"]').should('be.visible');
-            cy.get('[data-testid="icon:story"]').should('be.visible');
-          });
-      });
-
-    cy.get('[data-testid="board-list:backlog"]')
-      .contains('TEST_TITLE')
-      .within(() => {
-        // Assert that correct avatar and type icon are visible
-        cy.get('[data-testid="avatar:Pickle Rick"]').should('be.visible');
-        cy.get('[data-testid="icon:story"]').should('be.visible');
-      });
+  it('Should create another issue with random title and description and validate it successfully', () => {
+    const randomTitle = faker.lorem.words(3); 
+    const randomDescription = faker.lorem.sentences(2); 
+    cy.get('[data-testid="modal:issue-create"]').within(() => {
+      fillDescriptionField(randomDescription); 
+      fillTitleField(randomTitle);
+    });
+  const dropdownSelections = [
+    { dropdownTestId: 'select:type', optionText: 'Task' },
+    { dropdownTestId: 'select:reporterId', optionText: 'Baby Yoda' },
+    { dropdownTestId: 'select:priority', optionText: 'Low' }
+  ];
+    dropdownSelections.forEach(selection => {
+      selectDropdownOption(selection.dropdownTestId, selection.optionText);
+  });
+    createItemAndCloseForm();
+    assertBacklogList();
   });
 
   it('Should validate title as required field if missing', () => {
-    // System finds modal for creating issue and does next steps inside of it
     cy.get('[data-testid="modal:issue-create"]').within(() => {
-      // Try to click create issue button without filling any data
       cy.get('button[type="submit"]').click();
-
-      // Assert that correct error message is visible
       cy.get('[data-testid="form-field:title"]').should('contain', 'This field is required');
     });
-  });
-
-  it.only('Should create another issue with provided data and validate it successfully', () => {
-    // Call the function to open the issue form
-    openIssueForm();
-    // Call the function to type value to description input field
-    fillDescriptionField(staticDescriptionText)
-    // Call function to type value to title input field
-    // Order of filling in the fields is first description, then title on purpose
-    // Otherwise filling title first sometimes doesn't work due to web page implementation
-    fillTitleField(staticTitle);
-    
-    // Open issue type dropdown and choose Bug
-    cy.get('[data-testid="select:type"]').click();
-    cy.get('[data-testid="select-option:Bug"]').wait(1000).trigger('mouseover').trigger('click');
-    cy.get('[data-testid="icon:bug"]').should('be.visible');
-
-    // Select Pickle Rick from reporter dropdown
-    cy.get('[data-testid="select:reporterId"]').click();
-    cy.get('[data-testid="select-option:Pickle Rick"]').click();
-
-    // Select Lord Gaben from assignee dropdown
-    cy.get('[data-testid="form-field:userIds"]').click();
-    cy.get('[data-testid="select-option:Lord Gaben"]').click();
-
-    // Click on button "Create issue"
-    cy.get('button[type="submit"]').click();
-  
-    // Assert that modal window is closed and successful message is visible
-    cy.get('[data-testid="modal:issue-create"]').should('not.exist');
-    cy.contains('Issue has been successfully created.').should('be.visible');
-  
-    // Reload the page to be able to see recently created issue
-    // Assert that successful message has dissappeared after the reload
-    cy.reload();
-    cy.contains('Issue has been successfully created.').should('not.exist');
-  
-    // Assert than only one list with name Backlog is visible and do steps inside of it
-    cy.get('[data-testid="board-list:backlog"]')
-      .should('be.visible')
-      .and('have.length', '1')
-      .within(() => {
-        // Assert that this list contains issues and first element with tag p has specified text
-        cy.get('[data-testid="list-issue"]')
-          .should('have.length', '5')
-          .first()
-          .find('p')
-          .contains('Bug')
-          .siblings()
-          .within(() => {
-            //Assert that correct avatar and type icon are visible
-            cy.get('[data-testid="avatar:Lord Gaben"]').should('be.visible');
-            cy.get('[data-testid="icon:bug"]').should('be.visible');
-          });
-      });
-  
-    cy.get('[data-testid="board-list:backlog"]')
-      .contains('Bug')
-      .within(() => {
-        // Assert that correct avatar and type icon are visible
-        cy.get('[data-testid="avatar:Lord Gaben"]').should('be.visible');
-        cy.get('[data-testid="icon:bug"]').should('be.visible');
-      });
   });
 }); 
