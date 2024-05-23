@@ -1,3 +1,6 @@
+//Iportant anouncment
+//Do do the problems with url you might need to run the tests several times to pass
+
 import { faker } from '@faker-js/faker'
 
 //Variable for function
@@ -75,6 +78,7 @@ describe('Issue create', () => {
     dropdownSelections.forEach(selection => {
       selectDropdownOption(selection.dropdownTestId, selection.optionText);
     });
+    createItemAndCloseForm();
     assertBacklogList();
   });
 
