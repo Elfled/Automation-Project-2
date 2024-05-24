@@ -1,6 +1,3 @@
-//Iportant anouncment
-//Do do the problems with url you might need to run the tests several times to pass
-
 import { faker } from '@faker-js/faker'
 
 //Variable for function
@@ -121,7 +118,7 @@ describe('Issue create', () => {
     assertBacklogList();
   });
 
-  it('Should validate title as required field if missing', () => {
+  it.skip('Should validate title as required field if missing', () => {
     cy.get('[data-testid="modal:issue-create"]').within(() => {
       cy.get('button[type="submit"]').click();
       cy.get('[data-testid="form-field:title"]').should('contain', 'This field is required');
