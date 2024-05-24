@@ -21,7 +21,6 @@ function selectDropdownOption(dropdownTestId, optionText) {
   cy.get(`[data-testid="select-option:${optionText}"]`).click();
   cy.get(`[data-testid="${dropdownTestId}"] div`).should("contain", optionText);
 }
-
 function createItemAndCloseForm() {
   cy.get('button[type="submit"]').click();
   cy.get('[data-testid="modal:issue-create"]').should('not.exist');
@@ -29,7 +28,6 @@ function createItemAndCloseForm() {
   cy.reload();
   cy.contains('Issue has been successfully created.').should('not.exist');
 }
-
 function assertBacklogList() {
   cy.get('[data-testid="board-list:backlog"]')
     .should('be.visible')
@@ -118,7 +116,7 @@ describe('Issue create', () => {
     assertBacklogList();
   });
 
-  it.skip('Should validate title as required field if missing', () => {
+  it('Should validate title as required field if missing', () => {
     cy.get('[data-testid="modal:issue-create"]').within(() => {
       cy.get('button[type="submit"]').click();
       cy.get('[data-testid="form-field:title"]').should('contain', 'This field is required');
