@@ -1,18 +1,20 @@
+function openIssueDetailView() {
+  cy.get('[data-testid="list-issue"]')
+    .first()
+    .click()
+    .then(() => {
+      cy.get('[data-testid="modal:issue-details"]').should("be.visible");
+    });
+}
+
 describe("Delete an issue and cancel deleting", () => {
   beforeEach(() => {
-    cy.visit("/");
+    cy.visit("/project/board");
     cy.url().should("eq", `${Cypress.env("baseUrl")}project/board`);
-    cy.visit(`${Cypress.env("baseUrl")}project/board`);
-
-    cy.get('[data-testid="list-issue"]')
-      .first()
-      .click()
-      .then(() => {
-        cy.get('[data-testid="modal:issue-details"]').should("be.visible");
-      });
+    openIssueDetailView();
   });
 
-  it("Should delete an issue", () => {
+  function deleteIssue() {
     cy.get('[data-testid="icon:trash"]').click();
     cy.get('[data-testid="modal:confirm"]').contains("Delete issue").click();
     cy.get('[data-testid="modal:confirm"]').should("not.exist");
@@ -20,9 +22,8 @@ describe("Delete an issue and cancel deleting", () => {
       "not.contain",
       "This is an issue of type: Task."
     );
-  });
-
-  it("Should cancel deletion of an issue", () => {
+  }
+  function cancelDeleteIssue() {
     cy.get('[data-testid="icon:trash"]').click();
     cy.get('[data-testid="modal:confirm"]').contains("Cancel").click();
     cy.get('[data-testid="modal:confirm"]').should("not.exist");
@@ -31,5 +32,13 @@ describe("Delete an issue and cancel deleting", () => {
       "contain",
       "This is an issue of type: Task."
     );
+  }
+  
+  it("Should delete an issue", () => {
+    deleteIssue();
+  });
+
+  it("Should cancel deletion of an issue", () => {
+    cancelDeleteIssue();
   });
 });
