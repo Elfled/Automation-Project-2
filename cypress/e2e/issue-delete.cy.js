@@ -1,37 +1,44 @@
+// Variables
+const selectors = {
+  listIssue: '[data-testid="list-issue"]',
+  issueDetailsModal: '[data-testid="modal:issue-details"]',
+  trashIcon: '[data-testid="icon:trash"]',
+  confirmModal: '[data-testid="modal:confirm"]',
+  closeIcon: '[data-testid="icon:close"]'
+};
+const baseUrl = Cypress.env("baseUrl");
+const projectBoardUrl = `${baseUrl}project/board`;
+const issueTypeText = "This is an issue of type: Task.";
+const deleteButtonText = "Delete issue";
+const cancelButtonText = "Cancel";
+
 function openIssueDetailView() {
-  cy.get('[data-testid="list-issue"]')
+  cy.get(selectors.listIssue)
     .first()
     .click()
     .then(() => {
-      cy.get('[data-testid="modal:issue-details"]').should("be.visible");
+      cy.get(selectors.issueDetailsModal).should("be.visible");
     });
 }
 
 describe("Delete an issue and cancel deleting", () => {
   beforeEach(() => {
     cy.visit("/project/board");
-    cy.url().should("eq", `${Cypress.env("baseUrl")}project/board`);
+    cy.url().should("eq", projectBoardUrl);
     openIssueDetailView();
   });
-
   function deleteIssue() {
-    cy.get('[data-testid="icon:trash"]').click();
-    cy.get('[data-testid="modal:confirm"]').contains("Delete issue").click();
-    cy.get('[data-testid="modal:confirm"]').should("not.exist");
-    cy.get('[data-testid="list-issue"]').should(
-      "not.contain",
-      "This is an issue of type: Task."
-    );
+    cy.get(selectors.trashIcon).click();
+    cy.get(selectors.confirmModal).contains(deleteButtonText).click();
+    cy.get(selectors.confirmModal).should("not.exist");
+    cy.get(selectors.listIssue).should("not.contain", issueTypeText);
   }
   function cancelDeleteIssue() {
-    cy.get('[data-testid="icon:trash"]').click();
-    cy.get('[data-testid="modal:confirm"]').contains("Cancel").click();
-    cy.get('[data-testid="modal:confirm"]').should("not.exist");
-    cy.get('[data-testid="icon:close"]').eq(0).click();
-    cy.get('[data-testid="list-issue"]').should(
-      "contain",
-      "This is an issue of type: Task."
-    );
+    cy.get(selectors.trashIcon).click();
+    cy.get(selectors.confirmModal).contains(cancelButtonText).click();
+    cy.get(selectors.confirmModal).should("not.exist");
+    cy.get(selectors.closeIcon).eq(0).click();
+    cy.get(selectors.listIssue).should("contain", issueTypeText);
   }
   
   it("Should delete an issue", () => {
@@ -42,3 +49,4 @@ describe("Delete an issue and cancel deleting", () => {
     cancelDeleteIssue();
   });
 });
+
