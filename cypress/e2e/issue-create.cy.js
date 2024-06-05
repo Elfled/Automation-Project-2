@@ -1,15 +1,19 @@
 import { faker } from "@faker-js/faker";
-//Variable for function
+
 const staticAssignee = "Lord Gaben";
-// Functions
+const baseUrl = Cypress.env("baseUrl");
+const projectBoardUrl = `${baseUrl}project/board`;
+
 function fillTitleField(text) {
-  cy.get('input[name="title"]').type(text); 
-  cy.get('input[name="title"]').should("have.value", text); 
+  cy.get('input[name="title"]').type(text);
+  cy.get('input[name="title"]').should("have.value", text);
 }
+
 function fillDescriptionField(descriptionText) {
-  cy.get(".ql-editor").type(descriptionText); 
-  cy.get(".ql-editor").should("have.text", descriptionText); 
+  cy.get(".ql-editor").type(descriptionText);
+  cy.get(".ql-editor").should("have.text", descriptionText);
 }
+
 function selectDropdownOption(dropdownTestId, optionText) {
   if (optionText === "Task") {
     cy.get(`[data-testid="${dropdownTestId}"] div`).should(
@@ -25,6 +29,7 @@ function selectDropdownOption(dropdownTestId, optionText) {
   cy.get(`[data-testid="select-option:${optionText}"]`).click();
   cy.get(`[data-testid="${dropdownTestId}"] div`).should("contain", optionText);
 }
+
 function createItemAndCloseForm() {
   cy.get('button[type="submit"]').click();
   cy.get('[data-testid="modal:issue-create"]').should("not.exist");
@@ -32,12 +37,13 @@ function createItemAndCloseForm() {
   cy.reload();
   cy.contains("Issue has been successfully created.").should("not.exist");
 }
+
 function assertBacklogList() {
   cy.get('[data-testid="board-list:backlog"]')
     .should("be.visible")
     .and("have.length", "1")
     .within(() => {
-      cy.get('[data-testid="list-issue"]').should("have.length.gt", 0); 
+      cy.get('[data-testid="list-issue"]').should("have.length.gt", 0);
       cy.get('[data-testid="list-issue"]')
         .first()
         .within(() => {
@@ -54,12 +60,10 @@ function assertBacklogList() {
 
 describe("Issue create", () => {
   beforeEach(() => {
-    cy.visit("/");
-    cy.url()
-      .should("eq", `${Cypress.env("baseUrl")}project/board`)
-      .then((url) => {
-        cy.visit(url + "/board?modal-issue-create=true");
-      });
+    cy.visit(projectBoardUrl);
+    cy.url().should("eq", projectBoardUrl).then(() => {
+      cy.visit(`${projectBoardUrl}/board?modal-issue-create=true`);
+    });
   });
 
   it("Should create an issue and validate it successfully", () => {
@@ -127,22 +131,15 @@ describe("Issue create", () => {
     assertBacklogList();
   });
 
-  it("Should validate title as required field if missing", () => {
+  it.only("Should validate title as required field if missing", () => {
     cy.get('[data-testid="modal:issue-create"]').within(() => {
-      cy.get('button[type="submit"]')
-        .should("be.visible")
-        .and("not.be.disabled");
+      cy.get('button[type="submit"]').should("be.visible").and("not.be.disabled");
       cy.get('button[type="submit"]').click({ force: true });
-
       cy.document().then((doc) => {
         console.log(doc.documentElement.innerHTML);
       });
       cy.wait(2000);
-
-      cy.get('[data-testid="form-field:title"]').should(
-        "contain.text",
-        "This field is required"
-      );
+      cy.get('[data-testid="form-field:title"]').should("contain.text", "This field is required");
     });
   });
 });

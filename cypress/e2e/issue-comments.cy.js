@@ -1,71 +1,124 @@
-describe('Issue comments creating, editing and deleting', () => {
-    beforeEach(() => {
-        cy.visit('/');
-        cy.url().should('eq', `${Cypress.env('baseUrl')}project/board`).then((url) => {
-            cy.visit(url + '/board');
-            cy.contains('This is an issue of type: Task.').click();
+// Variables
+const projectBoardUrl = `${Cypress.env("baseUrl")}project/board`;
+const issueIdentifier = "This is an issue of type: Task."; // Replace this with the specific issue identifier you want to test
+
+// Functions
+const openIssue = (issueIdentifier, context = "body") => {
+  cy.get(context)
+    .contains(issueIdentifier)
+    .click()
+    .then(() => {
+      cy.get('[data-testid="modal:issue-details"]').should("be.visible");
+    });
+};
+
+const getIssueDetailsModal = () => cy.get('[data-testid="modal:issue-details"]');
+
+const addComment = (comment) => {
+  getIssueDetailsModal().within(() => {
+    cy.contains('Add a comment...')
+      .click();
+
+    cy.get('textarea[placeholder="Add a comment..."]').type(comment);
+
+    cy.contains('button', 'Save')
+      .click()
+      .should('not.exist');
+
+    cy.contains('Add a comment...')
+      .should('exist');
+    
+    cy.get('[data-testid="issue-comment"]')
+      .should('contain', comment);
+  });
+};
+
+const editComment = (previousComment, newComment) => {
+  getIssueDetailsModal().within(() => {
+    cy.get('[data-testid="issue-comment"]')
+        .contains(previousComment)
+        .parents('[data-testid="issue-comment"]')
+        .within(() => {
+          cy.contains('Edit').click();
         });
+
+    cy.get('textarea[placeholder="Add a comment..."]')
+        .clear()
+        .type(newComment);
+
+    cy.contains('button', 'Save')
+        .click()
+        .should('not.exist');
+
+    cy.get('[data-testid="issue-comment"]')
+        .should('contain', 'Edit')
+        .and('contain', newComment);
+  });
+};
+
+const deleteComment = (commentText) => {
+  getIssueDetailsModal()
+    .find('[data-testid="issue-comment"]')
+    .contains(commentText)
+    .parents('[data-testid="issue-comment"]')
+    .within(() => {
+      cy.contains('Delete').click();
     });
 
-    const getIssueDetailsModal = () => cy.get('[data-testid="modal:issue-details"]');
+  cy.get('[data-testid="modal:confirm"]')
+    .contains('button', 'Delete comment')
+    .click()
+    .should('not.exist');
 
-    it('Should create a comment successfully', () => {
-        const comment = 'TEST_COMMENT';
+  getIssueDetailsModal()
+    .find('[data-testid="issue-comment"]')
+    .should('not.contain', commentText);
+};
 
-        getIssueDetailsModal().within(() => {
-            cy.contains('Add a comment...')
-                .click();
+// Tests
+describe("Issue comments creating, editing, and deleting", () => {
+  beforeEach(() => {
+    cy.visit(projectBoardUrl);
+    openIssue(issueIdentifier);
+  });
 
-            cy.get('textarea[placeholder="Add a comment..."]').type(comment);
+  it("Should create a comment successfully", () => {
+    const comment = "TEST_COMMENT";
+    addComment(comment);
+  });
 
-            cy.contains('button', 'Save')
-                .click()
-                .should('not.exist');
+  it("Should edit a comment successfully", () => {
+    const previousComment = "TEST_COMMENT";
+    const newComment = "TEST_COMMENT_EDITED";
 
-            cy.contains('Add a comment...').should('exist');
-            cy.get('[data-testid="issue-comment"]').should('contain', comment);
-        });
-    });
+    // Create a comment to ensure there is one to edit
+    addComment(previousComment);
 
-    it('Should edit a comment successfully', () => {
-        const previousComment = 'An old silent pond...';
-        const comment = 'TEST_COMMENT_EDITED';
+    // Edit the comment
+    editComment(previousComment, newComment);
+  });
 
-        getIssueDetailsModal().within(() => {
-            cy.get('[data-testid="issue-comment"]')
-                .first()
-                .contains('Edit')
-                .click()
-                .should('not.exist');
+  it("Should delete a comment successfully", () => {
+    const comment = "TEST_COMMENT";
 
-            cy.get('textarea[placeholder="Add a comment..."]')
-                .should('contain', previousComment)
-                .clear()
-                .type(comment);
+    // Create a comment to ensure there is one to delete
+    addComment(comment);
 
-            cy.contains('button', 'Save')
-                .click()
-                .should('not.exist');
+    // Delete the comment
+    deleteComment(comment);
+  });
 
-            cy.get('[data-testid="issue-comment"]')
-                .should('contain', 'Edit')
-                .and('contain', comment);
-        });
-    });
-
-    it('Should delete a comment successfully', () => {
-        getIssueDetailsModal()
-            .find('[data-testid="issue-comment"]')
-            .contains('Delete')
-            .click();
-
-        cy.get('[data-testid="modal:confirm"]')
-            .contains('button', 'Delete comment')
-            .click()
-            .should('not.exist');
-
-        getIssueDetailsModal()
-            .find('[data-testid="issue-comment"]')
-            .should('not.exist');
-    });
+  it("Should create, edit, and delete a comment successfully", () => {
+    const comment = "HT_COMMENT";
+    const newComment = "HT_COMMENT_EDITED";
+   
+    // Create a comment
+    addComment(comment);
+  
+    // Edit the comment
+    editComment(comment, newComment);
+  
+    // Delete the edited comment
+    deleteComment(newComment);
+  });
 });
