@@ -21,40 +21,31 @@ describe("Time tracking function", () => {
       });
     timeTrackingModal.createIssue(staticTitle, staticDescriptionText);
     timeTrackingModal.openIssueDetailView(staticTitle);
-
   });
 
   it("should add, edit, and remove time estimation", () => {
-    // Add time estimation
     timeTrackingModal.fillTimeEstimation(testData.initialTimeEstimation);
     timeTrackingModal.assertTimeEstimation(testData.initialTimeEstimation);
     timeTrackingModal.closeIssueDetailView();
 
-    // Reopen the issue to check that the time estimation is saved
     timeTrackingModal.openIssueDetailView(staticTitle);
     timeTrackingModal.assertTimeEstimation(testData.initialTimeEstimation);
 
-    // Edit time estimation
     timeTrackingModal.fillTimeEstimation(testData.updatedTimeEstimation);
     timeTrackingModal.assertTimeEstimation(testData.updatedTimeEstimation);
     timeTrackingModal.closeIssueDetailView();
 
-    // Reopen the issue to check that the updated time estimation is saved
     timeTrackingModal.openIssueDetailView(staticTitle);
     timeTrackingModal.assertTimeEstimation(testData.updatedTimeEstimation);
 
-    // Remove time estimation
     timeTrackingModal.removeTimeEstimation();
     timeTrackingModal.closeIssueDetailView();
 
-    // Reopen the issue to check that the time estimation is removed
     timeTrackingModal.openIssueDetailView(staticTitle);
     timeTrackingModal.assertNoTimeEstimation();
   });
 
   it("should log time and remove time successfully", () => {
-
-    // Add time estimation
     timeTrackingModal.fillTimeEstimation(testData.initialTimeEstimation);
     timeTrackingModal.assertTimeEstimation(testData.initialTimeEstimation);
 
