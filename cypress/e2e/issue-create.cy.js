@@ -1,19 +1,16 @@
 import { faker } from "@faker-js/faker";
 
+//Variable for function
 const staticAssignee = "Lord Gaben";
-const baseUrl = Cypress.env("baseUrl");
-const projectBoardUrl = `${baseUrl}project/board`;
-
+// Functions
 function fillTitleField(text) {
   cy.get('input[name="title"]').type(text);
   cy.get('input[name="title"]').should("have.value", text);
 }
-
 function fillDescriptionField(descriptionText) {
   cy.get(".ql-editor").type(descriptionText);
   cy.get(".ql-editor").should("have.text", descriptionText);
 }
-
 function selectDropdownOption(dropdownTestId, optionText) {
   if (optionText === "Task") {
     cy.get(`[data-testid="${dropdownTestId}"] div`).should(
@@ -29,7 +26,6 @@ function selectDropdownOption(dropdownTestId, optionText) {
   cy.get(`[data-testid="select-option:${optionText}"]`).click();
   cy.get(`[data-testid="${dropdownTestId}"] div`).should("contain", optionText);
 }
-
 function createItemAndCloseForm() {
   cy.get('button[type="submit"]').click();
   cy.get('[data-testid="modal:issue-create"]').should("not.exist");
@@ -37,7 +33,6 @@ function createItemAndCloseForm() {
   cy.reload();
   cy.contains("Issue has been successfully created.").should("not.exist");
 }
-
 function assertBacklogList() {
   cy.get('[data-testid="board-list:backlog"]')
     .should("be.visible")
@@ -60,10 +55,12 @@ function assertBacklogList() {
 
 describe("Issue create", () => {
   beforeEach(() => {
-    cy.visit(projectBoardUrl);
-    cy.url().should("eq", projectBoardUrl).then(() => {
-      cy.visit(`${projectBoardUrl}/board?modal-issue-create=true`);
-    });
+    cy.visit("/");
+    cy.url()
+      .should("eq", `${Cypress.env("baseUrl")}project/board`)
+      .then((url) => {
+        cy.visit(url + "/board?modal-issue-create=true");
+      });
   });
 
   it("Should create an issue and validate it successfully", () => {
@@ -130,16 +127,34 @@ describe("Issue create", () => {
     createItemAndCloseForm();
     assertBacklogList();
   });
-
-  it.only("Should validate title as required field if missing", () => {
+  it.only('Should validate title is required field if missing', () => {
+    // System finds modal for creating issue and does next steps inside of it
     cy.get('[data-testid="modal:issue-create"]').within(() => {
-      cy.get('button[type="submit"]').should("be.visible").and("not.be.disabled");
-      cy.get('button[type="submit"]').click({ force: true });
-      cy.document().then((doc) => {
-        console.log(doc.documentElement.innerHTML);
-      });
+      // Try to click create issue button without filling any data
+      cy.get('button[type="submit"]').click();
+
       cy.wait(2000);
-      cy.get('[data-testid="form-field:title"]').should("contain.text", "This field is required");
+
+      cy.get('[data-testid="form-field:title"]').should(
+        "contain.text",
+        "This field is required"
+      );
+    });
+  });
+
+  it("should remove leading and trailing spaces from the issue title on the board", () => {
+    const description = faker.lorem.sentence();
+    const originalTitle = "Hello world!";
+    const titleWithSpaces = "  " + originalTitle + "  ";
+    const trimmedTitle = originalTitle.trim();
+
+    fillDescriptionField(description);
+    fillTitleField(titleWithSpaces);
+    createItemAndCloseForm();
+
+    cy.wait(6000);
+    cy.get('[data-testid="board-list:backlog"]').within(() => {
+      cy.get("p.sc-kfGgVZ").first().should("contain", trimmedTitle);
     });
   });
 });
