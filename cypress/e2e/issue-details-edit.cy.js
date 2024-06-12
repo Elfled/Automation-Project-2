@@ -80,22 +80,17 @@ describe('Issue details editing', () => {
           cy.log(`Length of array: ${priorities.length}`);
         });
       cy.get(prioritySelection).click();
-      // Loop through each option
       cy.get(selectOptions)
         .each(($el) => {
           cy.wrap($el)
-            // Get the text content of the current element
             .invoke("text")
             .then((priorityOption) => {
-              // Push the text content into the array
               priorities.push(priorityOption.trim());
               cy.log(`Value added: ${priorityOption.trim()}`);
-              // Log the current length of the priorities array
               cy.log(`Length of array: ${priorities.length}`);
             });
         })
         .then(() => {
-          // Assert the length of the array
           cy.wrap(null).then(() => {
             expect(priorities.length).to.eq(expectedLengthPriority);
             cy.log(`Priorities array: ${priorities}`);
