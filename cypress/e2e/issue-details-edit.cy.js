@@ -16,7 +16,7 @@ const clickDropdownOption = (dropdownSelector, optionText) => {
 
 const assertTextInDropdown = (dropdownSelector, expectedText) => {
   getIssueDetailsModal().within(() => {
-    cy.get(dropdownSelector).should("contain", expectedText);
+    cy.get(dropdownSelector).should("contain", expectedText);add .
   });
 };
 
@@ -67,7 +67,7 @@ describe("Issue details editing", () => {
     });
   });
 
-  it.only("Should check the options of Priority dropdown", () => {
+  it("Should check the options of Priority dropdown", () => {
     const prioritySelection = '[data-testid="select:priority"]';
     const selectOptions = '[data-testid^="select-option:"]';
 
@@ -95,7 +95,6 @@ describe("Issue details editing", () => {
             });
         })
         .then(() => {
-
           priorities.reverse();
 
           cy.wrap(null).then(() => {
@@ -105,7 +104,7 @@ describe("Issue details editing", () => {
         });
     });
   });
-  
+
   it("Should have only characters in the reporter name", () => {
     getIssueDetailsModal().within(() => {
       cy.get('[data-testid="select:reporter"]').each(($reporter) => {
