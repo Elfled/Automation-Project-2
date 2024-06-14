@@ -24,14 +24,26 @@ describe("Time tracking function", () => {
   });
 
   it("should add, edit, and remove time estimation", () => {
-    timeTrackingModal.addAndVerifyTimeEstimation(staticTitle, testData.initialTimeEstimation);
-    timeTrackingModal.editAndVerifyTimeEstimation(staticTitle, testData.updatedTimeEstimation);
+    timeTrackingModal.addAndVerifyTimeEstimation(
+      staticTitle,
+      testData.initialTimeEstimation
+    );
+    timeTrackingModal.editAndVerifyTimeEstimation(
+      staticTitle,
+      testData.updatedTimeEstimation
+    );
     timeTrackingModal.removeAndVerifyTimeEstimation(staticTitle);
   });
 
   it("should log time and remove time successfully", () => {
-    timeTrackingModal.addAndVerifyTimeEstimation(staticTitle, testData.initialTimeEstimation);
-    timeTrackingModal.logAndVerifyTime(testData.timeSpent, testData.timeRemaining);
+    timeTrackingModal.addAndVerifyTimeEstimation(
+      staticTitle,
+      testData.initialTimeEstimation
+    );
+    timeTrackingModal.logAndVerifyTime(
+      testData.timeSpent,
+      testData.timeRemaining
+    );
     timeTrackingModal.clearAndVerifyLoggedTime();
   });
 });
