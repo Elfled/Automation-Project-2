@@ -16,7 +16,7 @@ const clickDropdownOption = (dropdownSelector, optionText) => {
 
 const assertTextInDropdown = (dropdownSelector, expectedText) => {
   getIssueDetailsModal().within(() => {
-    cy.get(dropdownSelector).should("contain", expectedText);add .
+    cy.get(dropdownSelector).should("contain", expectedText);
   });
 };
 
