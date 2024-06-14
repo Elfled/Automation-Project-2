@@ -24,45 +24,14 @@ describe("Time tracking function", () => {
   });
 
   it("should add, edit, and remove time estimation", () => {
-    timeTrackingModal.fillTimeEstimation(testData.initialTimeEstimation);
-    timeTrackingModal.assertTimeEstimation(testData.initialTimeEstimation);
-    timeTrackingModal.closeIssueDetailView();
-
-    timeTrackingModal.openIssueDetailView(staticTitle);
-    timeTrackingModal.assertTimeEstimation(testData.initialTimeEstimation);
-
-    timeTrackingModal.fillTimeEstimation(testData.updatedTimeEstimation);
-    timeTrackingModal.assertTimeEstimation(testData.updatedTimeEstimation);
-    timeTrackingModal.closeIssueDetailView();
-
-    timeTrackingModal.openIssueDetailView(staticTitle);
-    timeTrackingModal.assertTimeEstimation(testData.updatedTimeEstimation);
-
-    timeTrackingModal.removeTimeEstimation();
-    timeTrackingModal.closeIssueDetailView();
-
-    timeTrackingModal.openIssueDetailView(staticTitle);
-    timeTrackingModal.assertNoTimeEstimation();
+    timeTrackingModal.addAndVerifyTimeEstimation(staticTitle, testData.initialTimeEstimation);
+    timeTrackingModal.editAndVerifyTimeEstimation(staticTitle, testData.updatedTimeEstimation);
+    timeTrackingModal.removeAndVerifyTimeEstimation(staticTitle);
   });
 
   it("should log time and remove time successfully", () => {
-    timeTrackingModal.fillTimeEstimation(testData.initialTimeEstimation);
-    timeTrackingModal.assertTimeEstimation(testData.initialTimeEstimation);
-
-    timeTrackingModal.openTimeTrackingModal();
-    timeTrackingModal.assertNoTimeLogged();
-    timeTrackingModal.fillTimeFields(
-      testData.timeSpent,
-      testData.timeRemaining
-    );
-    timeTrackingModal.clickDoneButton();
-    timeTrackingModal.assertTimeLogged(
-      testData.timeSpent,
-      testData.timeRemaining
-    );
-    timeTrackingModal.openTimeTrackingModal();
-    timeTrackingModal.clearTimeFields();
-    timeTrackingModal.clickDoneButton();
-    timeTrackingModal.assertTimeNotLogged();
+    timeTrackingModal.addAndVerifyTimeEstimation(staticTitle, testData.initialTimeEstimation);
+    timeTrackingModal.logAndVerifyTime(testData.timeSpent, testData.timeRemaining);
+    timeTrackingModal.clearAndVerifyLoggedTime();
   });
 });
